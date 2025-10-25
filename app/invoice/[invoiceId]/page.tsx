@@ -8,9 +8,10 @@ import Wrapper from '@/app/components/Wrapper'
 import { Invoice, Totals } from '@/type'
 import { Save, Trash } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
-const page = ({ params }: { params: Promise<{ invoiceId: string }> }) => {
+// CORRECTION 1: Renommer 'page' en 'Page'
+const Page = ({ params }: { params: { invoiceId: string } }) => {
 
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [initialInvoice, setInitialInvoice] = useState<Invoice | null>(null);
@@ -19,9 +20,10 @@ const page = ({ params }: { params: Promise<{ invoiceId: string }> }) => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const fetchInvoice = async () => {
+  // Utiliser useCallback pour stabiliser la fonction et l'inclure comme dépendance
+  const fetchInvoice = useCallback(async () => {
     try {
-      const { invoiceId } = await params
+      const { invoiceId } = params // params n'est plus une Promise ici
       const fetchedInvoice = await getInvoiceById(invoiceId)
       if (fetchedInvoice) {
         setInvoice(fetchedInvoice)
@@ -30,11 +32,13 @@ const page = ({ params }: { params: Promise<{ invoiceId: string }> }) => {
     } catch (error) {
       console.error(error)
     }
-  }
+  }, [params])
 
+
+  // CORRECTION 2: Ajouter fetchInvoice dans le tableau de dépendances
   useEffect(() => {
     fetchInvoice()
-  }, [])
+  }, [fetchInvoice])
 
 
   useEffect(() => {
@@ -186,15 +190,14 @@ const page = ({ params }: { params: Promise<{ invoiceId: string }> }) => {
 
           <div className='flex w-full md:w-2/3 flex-col md:ml-4'>
             <InvoiceLines invoice={invoice} setInvoice={setInvoice} />
-            <InvoicePDF invoice={invoice}  totals={totals}/>
+            <InvoicePDF invoice={invoice} totals={totals} />
           </div>
- 
+
         </div>
       </div>
     </Wrapper>
   )
 }
 
-export default page
-
-
+// CORRECTION 1: Exporter 'Page'
+export default Page
